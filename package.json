@@ -1,0 +1,19 @@
+{
+  "name": "coyl",
+  "version": "1.0.0",
+  "description": "A data generation and mutation library for creating fake data and genetic algorithms",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thread-speaker/coyl.git"
+  },
+  "author": "thread_speaker",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/thread-speaker/coyl/issues"
+  },
+  "homepage": "https://github.com/thread-speaker/coyl#readme"
+}
