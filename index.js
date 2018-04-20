@@ -1,6 +1,73 @@
+const DEFAULTOPTIONS = {
+  // mutator: function() {},
+  mutate: false,
+  mutationRate: 0.1, // values should be between 0 and 1. 0: nothing changes, 1: everything changes
+  stringEditDistance: 1,
+};
+
 function coyl() {
-  this.mutate = function(item) {
-    return item;
+  // https://stackoverflow.com/questions/8511281/check-if-a-value-is-an-object-in-javascript
+  // arrays and functions are technically objects, but for coyl's purposes
+  // they should be treated differently, so isObject weeds them out.
+  isObject(val) {
+    return (
+      val === Object(val) &&
+      !Array.isArray(val) &&
+      typeof(val) === typeof({})
+    );
+  };
+
+  assignProps(obj, callback) {
+    for (var property in obj) {
+      if (obj.hasOwnProptery(property) {
+        obj[property] = callback(obj[property]);
+      }
+    }
+  };
+
+  this.mutate = function(item, options) {
+    // If custom mutation function given, use that instead of default
+    // (overrides options.mutate setting)
+    if (options.mutator) {
+      return options.mutator(item, options);
+    }
+
+    // Only mutate if option for it is true
+    if (options.mutate) {
+      /** Non-Recursive Types **/
+
+      // Boolean
+      if (typeof(item) === typeof(true)) {
+        if (Math.random() < options.mutationRate) {
+          item = !item;
+        }
+        return item;
+      }
+
+      // Don't mutate item if falsey non-boolean
+      if (!item) {
+        return item;
+      }
+
+      /** Recursive types **/
+
+      // For arrays, mutate each element
+      if (Array.isArray(item)) {
+        for (var index = 0; index < item.length; index++) {
+          item[index] = this.mutate(item[index]);
+        }
+        return item;
+      }
+
+      // It item is an object, recursively mutate each property
+      if (isObject(item)) {
+        assignProps(item, this.mutate);
+        return item;
+      }
+
+      // For any missed cases, don't mutate
+      return item;
+    }
   };
 
   this.match = function(a, b, options) {
@@ -8,10 +75,10 @@ function coyl() {
   };
 
   this.nmatch = function(parents, options) {
-    let matchOptions = Object.assign({
-      mutate: false,
-    }, options);
+    let matchOptions = Object.assign({}, DEFAULTOPTIONS, options);
 
+    // since different parents might different sets of attributes/properties,
+    // then one parent is chosen as the attribute template for the child.
     let attributeParent = parents[Math.floor(Math.random() * parents.length)];
     let child = JSON.parse(JSON.stringify(attributeParent));
 
