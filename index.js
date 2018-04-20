@@ -5,6 +5,10 @@ const DEFAULTOPTIONS = {
   stringEditDistance: 1,
 };
 
+// seed is initialized with Math.random, but all other pseudo-random numbers
+// will be generated via the seed.
+var seed = Math.random();
+
 function coyl() {
   // https://stackoverflow.com/questions/8511281/check-if-a-value-is-an-object-in-javascript
   // arrays and functions are technically objects, but for coyl's purposes
@@ -17,12 +21,24 @@ function coyl() {
     );
   };
 
+  // https://stackoverflow.com/questions/521295/seeding-the-random-number-generator-in-javascript
+  // Slower than Math.random() but allows the use of a seed
+  // variable, which can be set by users if needed.
+  random() {
+    var x = Math.sin(++seed) * 10000;
+    return x - Math.floor(x);
+  };
+
   assignProps(obj, callback) {
     for (var property in obj) {
       if (obj.hasOwnProptery(property) {
         obj[property] = callback(obj[property]);
       }
     }
+  };
+
+  this.setSeed(val) {
+    seed = val;
   };
 
   this.mutate = function(item, options) {
@@ -38,7 +54,7 @@ function coyl() {
 
       // Boolean
       if (typeof(item) === typeof(true)) {
-        if (Math.random() < options.mutationRate) {
+        if (this.random() < options.mutationRate) {
           item = !item;
         }
         return item;
@@ -79,12 +95,12 @@ function coyl() {
 
     // since different parents might different sets of attributes/properties,
     // then one parent is chosen as the attribute template for the child.
-    let attributeParent = parents[Math.floor(Math.random() * parents.length)];
+    let attributeParent = parents[Math.floor(this.random() * parents.length)];
     let child = JSON.parse(JSON.stringify(attributeParent));
 
     for (var property in child) {
       if (child.hasOwnProperty(property)) {
-        const attributeValue = parents[Math.floor(Math.random() * parents.length)][property];
+        const attributeValue = parents[Math.floor(this.random() * parents.length)][property];
         child[property] = attributeValue;
       }
     }
