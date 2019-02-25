@@ -13,7 +13,7 @@ function coyl() {
   // https://stackoverflow.com/questions/8511281/check-if-a-value-is-an-object-in-javascript
   // arrays and functions are technically objects, but for coyl's purposes
   // they should be treated differently, so isObject weeds them out.
-  isObject(val) {
+  let isObject = (val) => {
     return (
       val === Object(val) &&
       !Array.isArray(val) &&
@@ -24,24 +24,24 @@ function coyl() {
   // https://stackoverflow.com/questions/521295/seeding-the-random-number-generator-in-javascript
   // Slower than Math.random() but allows the use of a seed
   // variable, which can be set by users if needed.
-  random() {
+  let random = () => {
     var x = Math.sin(++seed) * 10000;
     return x - Math.floor(x);
   };
 
-  assignProps(obj, callback) {
+  let assignProps = (obj, callback) => {
     for (var property in obj) {
-      if (obj.hasOwnProptery(property) {
+      if (obj.hasOwnProptery(property)) {
         obj[property] = callback(obj[property]);
       }
     }
   };
 
-  this.setSeed(val) {
+  this.setSeed = (val) => {
     seed = val;
   };
 
-  this.mutate = function(item, options) {
+  this.mutate = (item, options) => {
     // If custom mutation function given, use that instead of default
     // (overrides options.mutate setting)
     if (options.mutator) {
@@ -86,11 +86,11 @@ function coyl() {
     }
   };
 
-  this.match = function(a, b, options) {
+  this.match = (a, b, options) => {
     return this.nmatch([a, b], options);
   };
 
-  this.nmatch = function(parents, options) {
+  this.nmatch = (parents, options) => {
     let matchOptions = Object.assign({}, DEFAULTOPTIONS, options);
 
     // since different parents might different sets of attributes/properties,
