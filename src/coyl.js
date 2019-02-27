@@ -1,8 +1,12 @@
 const DEFAULTOPTIONS = {
-  // mutator: function() {},
+  mutators: {
+    // string: (value, options) => {},
+    // number: (value, options) => {},
+  },
   mutate: false,
   mutationRate: 0.1, // values should be between 0 and 1. 0: nothing changes, 1: everything changes
   stringEditDistance: 1,
+  numberMutateDistance: 1,
 };
 
 // seed is initialized with Math.random, but all other pseudo-random numbers
@@ -10,21 +14,10 @@ const DEFAULTOPTIONS = {
 var seed = Math.random();
 
 function coyl() {
-  // https://stackoverflow.com/questions/8511281/check-if-a-value-is-an-object-in-javascript
-  // arrays and functions are technically objects, but for coyl's purposes
-  // they should be treated differently, so isObject weeds them out.
-  let isObject = (val) => {
-    return (
-      val === Object(val) &&
-      !Array.isArray(val) &&
-      typeof(val) === typeof({})
-    );
-  };
-
   // https://stackoverflow.com/questions/521295/seeding-the-random-number-generator-in-javascript
   // Slower than Math.random() but allows the use of a seed
   // variable, which can be set by users if needed.
-  let random = () => {
+  this.random = () => {
     var x = Math.sin(++seed) * 10000;
     return x - Math.floor(x);
   };
@@ -41,30 +34,22 @@ function coyl() {
     seed = val;
   };
 
-  this.mutate = (item, options) => {
-    // If custom mutation function given, use that instead of default
-    // (overrides options.mutate setting)
-    if (options.mutator) {
-      return options.mutator(item, options);
-    }
+  this.getSeed = () => seed;
 
+  // https://stackoverflow.com/questions/8511281/check-if-a-value-is-an-object-in-javascript
+  // arrays and functions are technically objects, but for coyl's purposes
+  // they should be treated differently, so isObject weeds them out.
+  this.isObject = (val) => {
+    return (
+      val === Object(val) &&
+      !Array.isArray(val) &&
+      typeof(val) === typeof({})
+    );
+  };
+
+  this.mutate = (item, options) => {
     // Only mutate if option for it is true
     if (options.mutate) {
-      /** Non-Recursive Types **/
-
-      // Boolean
-      if (typeof(item) === typeof(true)) {
-        if (this.random() < options.mutationRate) {
-          item = !item;
-        }
-        return item;
-      }
-
-      // Don't mutate item if falsey non-boolean
-      if (!item) {
-        return item;
-      }
-
       /** Recursive types **/
 
       // For arrays, mutate each element
@@ -79,6 +64,32 @@ function coyl() {
       if (isObject(item)) {
         assignProps(item, this.mutate);
         return item;
+      }
+
+      /** Non-Recursive Types **/
+
+      let shouldMutate = this.random() <= options.mutationRate;
+      if (shouldMutate) {
+        // If item is not a recursive type and a custom mutation function is provided,
+        // use that instead of default mutator
+        let type = typeof item;
+        if (options.mutators[type]) {
+          return options.mutator(item, options);
+        }
+
+        // Boolean
+        if (typeof(item) === typeof(true)) {
+          if (this.random() < options.mutationRate) {
+            item = !item;
+          }
+          return item;
+        }
+
+        // Number
+        if (typeof(item) === typeof(1)) {
+          let change = (this.random() * (2 * numberMutateDistance)) - numberMutateDistance;
+          item += change;
+        }
       }
 
       // For any missed cases, don't mutate

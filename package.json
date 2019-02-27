@@ -2,10 +2,10 @@
   "name": "coyl",
   "version": "1.0.0",
   "description": "A data generation and mutation library for creating fake data and genetic algorithms",
-  "main": "index.js",
+  "main": "src/coyl.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rimraf dist/ && babel ./ --out-dir dist/ --ignore ./node_modules,./.babelrc,./package.json,./npm-debug.log --copy-files",
+    "test": "mocha",
+    "build": "rimraf dist/ && babel ./src --out-dir dist/ --ignore *test* --copy-files",
     "start": "npm run build"
   },
   "repository": {
@@ -19,8 +19,9 @@
   },
   "homepage": "https://github.com/thread-speaker/coyl#readme",
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-preset-es2015": "^6.24.1",
-    "rimraf": "^2.6.3"
+    "babel-cli": "6.26.0",
+    "babel-preset-es2015": "6.24.1",
+    "mocha": "6.0.2",
+    "rimraf": "2.6.3"
   }
 }
