@@ -47,7 +47,11 @@ function coyl() {
     );
   };
 
-  this.mutate = (item, options) => {
+  this.mutate = (item, options = {}) => {
+    // Don't mutate the original item, instead duplicate it and mutate that.
+    item = JSON.parse(JSON.stringify(item));
+    options = { ...DEFAULTOPTIONS, ...options };
+
     // Only mutate if option for it is true
     if (options.mutate) {
       /** Recursive types **/
@@ -55,14 +59,18 @@ function coyl() {
       // For arrays, mutate each element
       if (Array.isArray(item)) {
         for (var index = 0; index < item.length; index++) {
-          item[index] = this.mutate(item[index]);
+          item[index] = this.mutate(item[index], options);
         }
         return item;
       }
 
       // It item is an object, recursively mutate each property
-      if (isObject(item)) {
-        assignProps(item, this.mutate);
+      if (this.isObject(item)) {
+        for (var property in item) {
+          if (item.hasOwnProperty(property)) {
+            item[property] = this.mutate(item[property], options);
+          }
+        }
         return item;
       }
 
@@ -70,24 +78,42 @@ function coyl() {
 
       let shouldMutate = this.random() <= options.mutationRate;
       if (shouldMutate) {
+        // Get the type of the item to mutate. If it is a number, determine if it it an integer or float.
+        let type = typeof item;
+        if (type === "number") {
+          if (Number.isInteger(item)) {
+            type = "integer";
+          }
+          else {
+            type = "float";
+          }
+        }
+
         // If item is not a recursive type and a custom mutation function is provided,
         // use that instead of default mutator
-        let type = typeof item;
-        if (options.mutators[type]) {
-          return options.mutator(item, options);
+        if (options.mutators.hasOwnProperty(type)) {
+          const mutator = options.mutators[type];
+          return mutator(item, options);
         }
 
         // Boolean
-        if (typeof(item) === typeof(true)) {
+        if (type === "boolean") {
           if (this.random() < options.mutationRate) {
             item = !item;
           }
           return item;
         }
 
-        // Number
-        if (typeof(item) === typeof(1)) {
-          let change = (this.random() * (2 * numberMutateDistance)) - numberMutateDistance;
+        // Integer
+        if (type === "integer") {
+          const factor = this.random() > 0.5 ? 1 : -1;
+          const change = (Math.floor(this.random() * options.numberMutateDistance) + 1) * factor;
+          item += change;
+        }
+
+        // Float
+        if (type === "float") {
+          const change = (this.random() * (2 * options.numberMutateDistance)) - options.numberMutateDistance;
           item += change;
         }
       }
@@ -102,27 +128,25 @@ function coyl() {
   };
 
   this.nmatch = (parents, options) => {
-    let matchOptions = Object.assign({}, DEFAULTOPTIONS, options);
+    let matchOptions = { ...DEFAULTOPTIONS, ...options };
 
     // since different parents might different sets of attributes/properties,
     // then one parent is chosen as the attribute template for the child.
-    let attributeParent = parents[Math.floor(this.random() * parents.length)];
-    let child = JSON.parse(JSON.stringify(attributeParent));
+    let templateParent = parents[Math.floor(this.random() * parents.length)];
+    let child = JSON.parse(JSON.stringify(templateParent));
 
-    for (var property in child) {
-      if (child.hasOwnProperty(property)) {
-        const attributeValue = parents[Math.floor(this.random() * parents.length)][property];
-        child[property] = attributeValue;
+      for (var property in child) {
+        if (child.hasOwnProperty(property)) {
+          const attributeParent = parents[Math.floor(this.random() * parents.length)];
+          if (attributeParent.hasOwnProperty(property)) {
+            const attributeValue = attributeParent[property];
+            child[property] = attributeValue;
+          }
+        }
       }
-    }
 
     if (matchOptions.mutate) {
-      if (matchOptions.mutator) {
-        child = matchOptions.mutator(child);
-      }
-      else {
-        child = this.mutate(child, options);
-      }
+      child = this.mutate(child, matchOptions);
     }
 
     return child;
