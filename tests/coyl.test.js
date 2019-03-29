@@ -1,6 +1,8 @@
 var assert = require('assert');
 
 var coyl = require('../src/coyl.js');
+var random = require('../src/random.js');
+var getEditDistance = require('./helpers/levenshtein.js');
 
 describe("coyl", () => {
   const defaultTestOptions = {
@@ -10,36 +12,6 @@ describe("coyl", () => {
   const testOptions = (options = {}) => {
     return { ...defaultTestOptions, ...options };
   };
-
-  describe("pseudo-random number generator", () => {
-    it("can set the random seed", () => {
-      let seed = 123;
-      coyl.setSeed(seed);
-
-      assert.equal(coyl.getSeed(), seed)
-    });
-
-    it("updates the seed after generating a random number", () => {
-      let seed = 123;
-      coyl.setSeed(seed);
-      coyl.random();
-
-      result = coyl.getSeed();
-      assert.notEqual(result, seed);
-    });
-
-    it("generates the same pseudo-random number from the same seed", () => {
-      let seed = 123;
-
-      coyl.setSeed(seed);
-      firstResult = coyl.random();
-
-      coyl.setSeed(seed);
-      secondResult = coyl.random();
-
-      assert.equal(firstResult, secondResult);
-    });
-  });
 
   describe("isObject", () => {
     it("counts objects as objects", () => {
@@ -88,7 +60,7 @@ describe("coyl", () => {
         const input = true;
         const input2 = false;
         const expected = true;
-        const options = testOptions({ mutators: { boolean: () => true } });
+        const options = testOptions({ boolean: { mutator: () => true } });
 
         const output = coyl.mutate(input, options);
         const output2 = coyl.mutate(input2, options);
@@ -99,12 +71,12 @@ describe("coyl", () => {
     });
 
     describe("integer", () => {
-      it("adjusts the value within numberMutateDistance", () => {
+      it("adjusts the value within mutateDistance", () => {
         const input = 10;
         const testDistance = 10;
 
         for (let i = 0; i < 10; i++) {
-          const output = coyl.mutate(input, testOptions({ numberMutateDistance: testDistance }));
+          const output = coyl.mutate(input, testOptions({ integer: { mutateDistance: testDistance } }));
           assert.notEqual(input, output);
           assert.ok(output <= input + testDistance);
           assert.ok(output >= input - testDistance);
@@ -114,7 +86,7 @@ describe("coyl", () => {
       it("uses defined mutator if defined in options", () => {
         const input = 10;
         const expected = 20;
-        const options = testOptions({ mutators: { integer: () => 20 } });
+        const options = testOptions({ integer: { mutator: () => 20 } });
 
         const output = coyl.mutate(input, options);
 
@@ -123,12 +95,12 @@ describe("coyl", () => {
     });
 
     describe("float", () => {
-      it("adjusts the value within numberMutateDistance", () => {
+      it("adjusts the value within mutateDistance", () => {
         const input = 10.1;
         const testDistance = 10;
 
         for (let i = 0; i < 10; i++) {
-          const output = coyl.mutate(input, testOptions({ numberMutateDistance: testDistance }));
+          const output = coyl.mutate(input, testOptions({ float: { mutateDistance: testDistance } }));
           assert.notEqual(input, output);
           assert.ok(output <= input + testDistance);
           assert.ok(output >= input - testDistance);
@@ -138,7 +110,7 @@ describe("coyl", () => {
       it("uses defined mutator if defined in options", () => {
         const input = 10.1;
         const expected = 20.5;
-        const options = testOptions({ mutators: { float: () => 20.5 } });
+        const options = testOptions({ float: { mutator: () => 20.5 } });
 
         const output = coyl.mutate(input, options);
 
@@ -149,20 +121,20 @@ describe("coyl", () => {
     describe("string", () => {
       it("adjusts the value within stringEditDistance", () => {
         const input = "foobaz";
-        const options = testOptions({ stringEditDistance: 3 });
+        const ed = 3;
+        const options = testOptions({ string: { stringEditDistance: ed } });
 
         for (let i = 0; i < 10; i++) {
           const output = coyl.mutate(input, options);
           assert.notEqual(input, output);
-          assert.ok(output <= input + testDistance);
-          assert.ok(output >= input - testDistance);
+          assert.ok(getEditDistance(input, output) <= ed);
         }
       });
 
       it("uses defined mutator if defined in options", () => {
         const input = "foobaz";
         const expected = "pie!";
-        const options = testOptions({ mutators: { string: () => "pie!" } });
+        const options = testOptions({ string: { mutator: () => "pie!" } });
 
         const output = coyl.mutate(input, options);
 
@@ -204,7 +176,7 @@ describe("coyl", () => {
   describe("match & nmatch", () => {
     it("match calls mutate", () => {
       let seed = 123;
-      coyl.setSeed(seed);
+      random.setSeed(seed);
 
       let parentValue = 123;
       let result = coyl.match(parentValue, parentValue, testOptions());
@@ -213,7 +185,7 @@ describe("coyl", () => {
 
     it("nmatch calls mutate", () => {
       let seed = 123;
-      coyl.setSeed(seed);
+      random.setSeed(seed);
 
       let parentValue = 123;
       let result = coyl.nmatch([parentValue], testOptions());
