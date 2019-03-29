@@ -8,7 +8,7 @@ const DEFAULTOPTIONS = {
     // mutator: (value, typeOptions) => newValue,
   },
   string: {
-    stringEditDistance: 1,
+    editDistance: 1,
     // addableCharacters: "",
     mutateDistance: 1,
     // mutator: (value, typeOptions) => newValue,
@@ -102,7 +102,7 @@ function coyl() {
 
         // String
         if (type === "string") {
-          for (let i = 0; i < typeOptions.stringEditDistance; i++) {
+          for (let i = 0; i < typeOptions.editDistance; i++) {
             item = stringMutator.edit(item, typeOptions);
           }
           return item;

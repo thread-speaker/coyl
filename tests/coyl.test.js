@@ -119,10 +119,10 @@ describe("coyl", () => {
     });
 
     describe("string", () => {
-      it("adjusts the value within stringEditDistance", () => {
+      it("adjusts the value within editDistance", () => {
         const input = "foobaz";
         const ed = 3;
-        const options = testOptions({ string: { stringEditDistance: ed } });
+        const options = testOptions({ string: { editDistance: ed } });
 
         for (let i = 0; i < 10; i++) {
           const output = coyl.mutate(input, options);
